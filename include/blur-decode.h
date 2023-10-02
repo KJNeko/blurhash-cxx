@@ -67,7 +67,7 @@ namespace blurhash
 			const int numY { static_cast< int >( std::div( sizeFlag, 9 ).quot ) + 1 };
 			const int numX { ( sizeFlag % 9 ) + 1 };
 
-			assert( hash_length == 4 + 2 * numX * numY );
+			if ( hash_length != 4 + 2 * numX * numY ) return false;
 			return true;
 		}
 
@@ -82,9 +82,9 @@ namespace blurhash
 
 		inline std::tuple< float, float, float > decodeAC( int value, const float maximumValue )
 		{
-			const int quantR { static_cast< int >( std::floor( value / ( 19 * 19 ) ) ) };
-			const int quantG { static_cast< int >( std::floor( value / 19 ) ) % 19 };
-			const int quantB { static_cast< int >( value % 19 ) };
+			const int quantR { static_cast< int >( floorf( static_cast< float >( value ) / ( 19.0f * 19.0f ) ) ) };
+			const int quantG { static_cast< int >( floorf( static_cast< float >( value ) / 19.0f ) ) % 19 };
+			const int quantB { value % 19 };
 
 			const float r { signPow( ( static_cast< float >( quantR ) - 9.0f ) / 9.0f, 2.0f ) * maximumValue };
 			const float g { signPow( ( static_cast< float >( quantG ) - 9.0f ) / 9.0f, 2.0f ) * maximumValue };
@@ -130,7 +130,7 @@ namespace blurhash
 		for ( int itter = 1; itter < colors_size; ++itter )
 		{
 			const int value { decodeToInt( hash, 4 + itter * 2, 6 + itter * 2 ) };
-			const auto ac { decodeAC( value, maxValue * punch ) };
+			const auto ac { decodeAC( value, maxValue * static_cast< float >( punch ) ) };
 			colors[ itter ][ RED ] = std::get< RED >( ac );
 			colors[ itter ][ GREEN ] = std::get< GREEN >( ac );
 			colors[ itter ][ BLUE ] = std::get< BLUE >( ac );
@@ -150,8 +150,10 @@ namespace blurhash
 
 				float basics_x[ components_x ];
 				float basics_y[ components_y ];
-				for ( int j = 0; j < components_y; ++j ) basics_y[ j ] = cosf( ( y_pi * j ) / height );
-				for ( int i = 0; i < components_x; ++i ) basics_x[ i ] = cosf( ( x_pi * i ) / width );
+				for ( int j = 0; j < components_y; ++j )
+					basics_y[ j ] = cosf( ( y_pi * static_cast< float >( j ) ) / static_cast< float >( height ) );
+				for ( int i = 0; i < components_x; ++i )
+					basics_x[ i ] = cosf( ( x_pi * static_cast< float >( i ) ) / static_cast< float >( width ) );
 
 				for ( int j = 0; j < components_y; ++j )
 				{

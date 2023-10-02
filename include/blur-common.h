@@ -22,8 +22,6 @@ inline int linearTosRGB( float value )
 		return static_cast< int >( std::round( ( 1.055f * std::pow( v, 1.0f / 2.4f ) - 0.055f ) * 255.0f ) );
 }
 
-inline static std::uint64_t max { 0 };
-
 namespace internal
 {
 	constexpr inline float sRGBToLinear( int value )
@@ -36,17 +34,19 @@ namespace internal
 	}
 } // namespace internal
 
-inline static constexpr std::array< float, 256 > sRGBLookupTable { []() constexpr
-	                                                               {
-																	   std::array< float, 256 > buffer {};
+inline static constexpr std::array< float, 256 > sRGBLookupTable {
+	[]() constexpr
+	{
+		std::array< float, 256 > buffer {};
 
-																	   for ( size_t i = 0; i < buffer.size(); ++i )
-																	   {
-																		   buffer[ i ] = internal::sRGBToLinear( i );
-																	   }
+		for ( size_t i = 0; i < buffer.size(); ++i )
+		{
+			buffer[ i ] = internal::sRGBToLinear( static_cast< int >( i ) );
+		}
 
-																	   return buffer;
-																   }() };
+		return buffer;
+	}()
+};
 #ifdef USE_LUT
 inline float sRGBToLinear( int value )
 {

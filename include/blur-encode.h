@@ -58,30 +58,34 @@ namespace blurhash
 			const int width,
 			const int height,
 			const uint8_t* rgb,
-			const size_t bytes_per_row )
+			const int bytes_per_row )
 		{
-			static int times_negative { 0 };
 			float r = 0.0f, g = 0.0f, b = 0.0f;
 			const float normalisation = ( x_comp == 0 && y_comp == 0 ) ? 1.0f : 2.0f;
 
 			for ( int y = 0; y < height; y++ )
 			{
-				const auto y_basis { cosf( M_PI * y_comp * y / height ) };
-				const auto y_idx { y * bytes_per_row };
+				const auto y_basis { cosf(
+					std::numbers::pi_v< float >
+					* static_cast< float >( y_comp * y ) / static_cast< float >( height ) ) };
+				const int y_idx { y * bytes_per_row };
 				for ( int x = 0; x < width; x++ )
 				{
-					const float x_basis { cosf( M_PI * x_comp * x / width ) };
-					const auto x_idx { 3 * x };
+					const float x_basis { cosf(
+						std::numbers::pi_v< float >
+						* static_cast< float >( x_comp * x ) / static_cast< float >( width ) ) };
+					const int x_idx { 3 * x };
 
 					const float basis { x_basis * y_basis };
-					const auto idx { x_idx + y_idx };
+					const int idx { x_idx + y_idx };
+
 					r += basis * sRGBToLinear( rgb[ idx + RED ] );
 					g += basis * sRGBToLinear( rgb[ idx + GREEN ] );
 					b += basis * sRGBToLinear( rgb[ idx + BLUE ] );
 				}
 			}
 
-			const float scale { normalisation / ( width * height ) };
+			const float scale { normalisation / static_cast< float >( width * height ) };
 
 			return std::make_tuple( r * scale, g * scale, b * scale );
 		}
@@ -135,9 +139,9 @@ namespace blurhash
 			}
 		}
 
-		for ( std::size_t y = 0; y < y_comp; ++y )
+		for ( int y = 0; y < y_comp; ++y )
 		{
-			for ( std::size_t x = 0; x < x_comp; ++x )
+			for ( int x = 0; x < x_comp; ++x )
 			{
 				const auto factor { multiplyBasisFunction( x, y, width, height, rgb, bytes_per_row ) };
 				factors[ y ][ x ][ RED ] = std::get< RED >( factor );
@@ -165,7 +169,6 @@ namespace blurhash
 		std::memcpy( ptr, size_encoding.data(), size_encoding.size() );
 		ptr += size_encoding.size();
 
-		//Diff here
 		float max_value { 0.0f };
 		if ( acCount > 0 )
 		{
