@@ -145,8 +145,8 @@ namespace blurhash
 			}
 		}
 
-		float* const dc { factors[ 0 ][ 0 ].data() };
-		float* const ac { dc + 3 };
+		const float* const dc { factors[ 0 ][ 0 ].data() };
+		const float* const ac { dc + 3 };
 		constexpr int acCount { x_comp * y_comp - 1 };
 
 		constexpr int sizeFlag { ( x_comp - 1 ) + ( y_comp - 1 ) * 9 };
