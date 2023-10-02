@@ -1,0 +1,9 @@
+[submodule "blurhash-ref"]
+	path = blurhash-ref
+	url = https://github.com/woltapp/blurhash.git
+[submodule "dependencies/gbench"]
+	path = dependencies/gbench
+	url = https://github.com/google/benchmark.git
+[submodule "dependencies/gtest"]
+	path = dependencies/gtest
+	url = https://github.com/google/googletest.git
