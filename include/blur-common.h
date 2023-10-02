@@ -47,8 +47,6 @@ inline static constexpr std::array< float, 255 > sRGBLookupTable { []() constexp
 
 																	   return buffer;
 																   }() };
-//#define USE_LUT 1
-
 #ifdef USE_LUT
 inline float sRGBToLinear( int value )
 {
