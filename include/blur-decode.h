@@ -94,7 +94,6 @@ namespace blurhash
 		}
 	} // namespace internal
 
-	template < std::uint8_t x_comp, std::uint8_t y_comp >
 	inline std::vector< std::uint8_t >
 		decode( const std::string_view hash, int width, int height, int punch, int channels )
 	{
@@ -109,23 +108,19 @@ namespace blurhash
 		if ( punch < 1 ) punch = 1;
 
 		const int size_flag { decodeToInt( hash, 0, 1 ) };
-		const int hash_components_y { static_cast< int >( std::floor( size_flag / 9 ) ) + 1 };
-		const int hash_components_x { ( size_flag % 9 ) + 1 };
-		assert( hash_components_x == x_comp );
-		assert( hash_components_y == y_comp );
+		const int components_y { static_cast< int >( std::floor( size_flag / 9 ) ) + 1 };
+		const int components_x { ( size_flag % 9 ) + 1 };
 		assert( hash_components_x > 1 );
 		assert( hash_components_y > 1 );
 		assert( hash_components_x < 9 );
 		assert( hash_components_y < 9 );
-		constexpr int components_x { x_comp };
-		constexpr int components_y { y_comp };
 
 		const int quantized_max_value { decodeToInt( hash, 1, 2 ) };
 
 		const float maxValue { static_cast< float >( quantized_max_value + 1 ) / 166.0f };
 
-		constexpr int colors_size { components_x * components_y };
-		std::array< std::array< float, 3 >, colors_size > colors;
+		int colors_size { components_x * components_y };
+		float colors[ colors_size ][ 3 ];
 
 		const auto dc { decodeDC( decodeToInt( hash, 2, 6 ) ) };
 		colors[ 0 ][ RED ] = std::get< RED >( dc );

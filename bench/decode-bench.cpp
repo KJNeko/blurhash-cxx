@@ -48,7 +48,6 @@ static void BM_Decode_C( benchmark::State& state )
 #define TEST_TEMPLATE_DECODE( num )                                                                                    \
 	case num:                                                                                                          \
 		{                                                                                                              \
-			out = blurhash::decode< num, num >( hash, size, size, 0, 3 );                                              \
 			break;                                                                                                     \
 		}
 
@@ -85,17 +84,7 @@ static void BM_Decode_CPP( benchmark::State& state )
 
 	for ( auto _ : state )
 	{
-		switch ( comp_size )
-		{
-			default:
-				TEST_TEMPLATE_DECODE( 2 )
-				TEST_TEMPLATE_DECODE( 3 )
-				TEST_TEMPLATE_DECODE( 4 )
-				TEST_TEMPLATE_DECODE( 5 )
-				TEST_TEMPLATE_DECODE( 6 )
-				TEST_TEMPLATE_DECODE( 7 )
-				TEST_TEMPLATE_DECODE( 8 )
-		}
+		out = blurhash::decode( hash, size, size, 0, 3 );
 	}
 }
 

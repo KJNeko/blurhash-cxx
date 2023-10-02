@@ -52,6 +52,7 @@ namespace blurhash
 		}
 
 		inline std::tuple< float, float, float > multiplyBasisFunction(
+			//const float* basis,
 			const int x_comp,
 			const int y_comp,
 			const int width,
