@@ -1,5 +1,5 @@
-#ifndef __BLURHASH_COMMON_H__
-#define __BLURHASH_COMMON_H__
+#ifndef BLURHASH_COMMON_HPP
+#define BLURHASH_COMMON_HPP
 
 #include <algorithm>
 #include <array>
