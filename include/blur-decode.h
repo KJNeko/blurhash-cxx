@@ -163,7 +163,7 @@ namespace blurhash
 					const int j_idx { j * components_x };
 					for ( int i = 0; i < components_x; ++i )
 					{
-						const float basics { basics_x[ i ] * basics_y[ i ] };
+						const float basics { basics_x[ j ] * basics_y[ i ] };
 
 						const int idx { j_idx + i };
 						r += colors[ idx ][ RED ] * basics;
