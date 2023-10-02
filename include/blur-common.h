@@ -36,9 +36,9 @@ namespace internal
 	}
 } // namespace internal
 
-inline static constexpr std::array< float, 255 > sRGBLookupTable { []() constexpr
+inline static constexpr std::array< float, 256 > sRGBLookupTable { []() constexpr
 	                                                               {
-																	   std::array< float, 255 > buffer {};
+																	   std::array< float, 256 > buffer {};
 
 																	   for ( size_t i = 0; i < buffer.size(); ++i )
 																	   {
@@ -50,7 +50,10 @@ inline static constexpr std::array< float, 255 > sRGBLookupTable { []() constexp
 #ifdef USE_LUT
 inline float sRGBToLinear( int value )
 {
-	assert( value < sRGBLookupTable.size() );
+	if ( value >= sRGBLookupTable.size() )
+	{
+		throw std::runtime_error( "Value was higher then lookup table! Was:" + std::to_string( value ) );
+	}
 	return sRGBLookupTable[ value ];
 }
 #else
