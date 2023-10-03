@@ -13,7 +13,7 @@ enum blurhashColor
 	BLUE
 };
 
-inline int linearTosRGB( float value )
+constexpr inline int linearTosRGB( float value )
 {
 	const float v { std::clamp( value, 0.0f, 1.0f ) };
 	if ( v <= 0.0031308f )
@@ -22,6 +22,9 @@ inline int linearTosRGB( float value )
 		return static_cast< int >( std::round( ( 1.055f * std::pow( v, 1.0f / 2.4f ) - 0.055f ) * 255.0f ) );
 }
 
+#define USE_LUT 1
+
+#ifdef USE_LUT
 namespace internal
 {
 	constexpr inline float sRGBToLinear( int value )
@@ -47,7 +50,7 @@ inline static constexpr std::array< float, 256 > sRGBLookupTable {
 		return buffer;
 	}()
 };
-#ifdef USE_LUT
+
 inline float sRGBToLinear( int value )
 {
 	if ( value >= sRGBLookupTable.size() )
@@ -67,7 +70,7 @@ constexpr inline float sRGBToLinear( int value )
 }
 #endif
 
-inline float signPow( float value, float exp )
+constexpr inline float signPow( float value, float exp )
 {
 	return std::copysign( std::pow( std::abs( value ), exp ), value );
 }

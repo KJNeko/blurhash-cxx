@@ -30,12 +30,8 @@ namespace blurhash
 			{
 				const int digit { ( value / divisor ) % 83 };
 				divisor /= 83;
-				if ( digit < 0 )
-				{
-					throw std::runtime_error( "Digit was below zero" );
-				}
-				const auto character { chars[ digit ] };
-				*buffer++ = character;
+				if ( digit < 0 ) throw std::runtime_error( "Digit was below zero" );
+				*buffer++ = chars[ digit ];
 			}
 			return buffer;
 		}
@@ -52,7 +48,8 @@ namespace blurhash
 		}
 
 		inline std::tuple< float, float, float > multiplyBasisFunction(
-			//const float* basis,
+			const float* x_basis,
+			const float* y_basis,
 			const int x_comp,
 			const int y_comp,
 			const int width,
@@ -63,20 +60,14 @@ namespace blurhash
 			float r = 0.0f, g = 0.0f, b = 0.0f;
 			const float normalisation = ( x_comp == 0 && y_comp == 0 ) ? 1.0f : 2.0f;
 
-			for ( int y = 0; y < height; y++ )
+			for ( int y = 0; y < height; ++y )
 			{
-				const auto y_basis { cosf(
-					std::numbers::pi_v< float >
-					* static_cast< float >( y_comp * y ) / static_cast< float >( height ) ) };
 				const int y_idx { y * bytes_per_row };
-				for ( int x = 0; x < width; x++ )
+				for ( int x = 0; x < width; ++x )
 				{
-					const float x_basis { cosf(
-						std::numbers::pi_v< float >
-						* static_cast< float >( x_comp * x ) / static_cast< float >( width ) ) };
-					const int x_idx { 3 * x };
+					const float basis { x_basis[ x ] * y_basis[ y ] };
 
-					const float basis { x_basis * y_basis };
+					const int x_idx { 3 * x };
 					const int idx { x_idx + y_idx };
 
 					r += basis * sRGBToLinear( rgb[ idx + RED ] );
@@ -90,7 +81,7 @@ namespace blurhash
 			return std::make_tuple( r * scale, g * scale, b * scale );
 		}
 
-		inline int encodeDC( float r, float g, float b )
+		constexpr inline int encodeDC( float r, float g, float b )
 		{
 			const int roundedR { linearTosRGB( r ) };
 			const int roundedG { linearTosRGB( g ) };
@@ -98,20 +89,14 @@ namespace blurhash
 			return ( roundedR << 16 ) + ( roundedG << 8 ) + roundedB;
 		}
 
-		inline int encodeAC( float r, float g, float b, float maximumValue )
+		constexpr inline int encodeAC( float r, float g, float b, float maximumValue )
 		{
 			const int quantR { static_cast<
-				int >( std::
-				           max( 0.0f,
-				                std::min( 18.0f, std::floor( signPow( r / maximumValue, 0.5f ) * 9.0f + 9.5f ) ) ) ) };
+				int >( std::clamp( std::floor( signPow( r / maximumValue, 0.5f ) * 9.0f + 9.5f ), 0.0f, 18.0f ) ) };
 			const int quantG { static_cast<
-				int >( std::
-				           max( 0.0f,
-				                std::min( 18.0f, std::floor( signPow( g / maximumValue, 0.5f ) * 9.0f + 9.5f ) ) ) ) };
+				int >( std::clamp( std::floor( signPow( g / maximumValue, 0.5f ) * 9.0f + 9.5f ), 0.0f, 18.0f ) ) };
 			const int quantB { static_cast<
-				int >( std::
-				           max( 0.0f,
-				                std::min( 18.0f, std::floor( signPow( b / maximumValue, 0.5f ) * 9.0f + 9.5f ) ) ) ) };
+				int >( std::clamp( std::floor( signPow( b / maximumValue, 0.5f ) * 9.0f + 9.5f ), 0.0f, 18.0f ) ) };
 
 			return ( quantR * 19 * 19 ) + ( quantG * 19 ) + quantB;
 		}
@@ -129,21 +114,24 @@ namespace blurhash
 
 		std::array< std::array< std::array< float, 3 >, x_comp >, y_comp > factors;
 
-		for ( std::size_t y = 0; y < y_comp; ++y )
-		{
-			for ( std::size_t x = 0; x < x_comp; ++x )
-			{
-				factors[ y ][ x ][ RED ] = 0.0f;
-				factors[ y ][ x ][ GREEN ] = 0.0f;
-				factors[ y ][ x ][ BLUE ] = 0.0f;
-			}
-		}
-
 		for ( int y = 0; y < y_comp; ++y )
 		{
+			float y_basis[ height ];
+			for ( int h = 0; h < height; ++h )
+			{
+				y_basis[ h ] = cosf( std::numbers::pi_v< float > * y * h / height );
+			}
 			for ( int x = 0; x < x_comp; ++x )
 			{
-				const auto factor { multiplyBasisFunction( x, y, width, height, rgb, bytes_per_row ) };
+				float x_basis[ width ];
+				for ( int w = 0; w < width; ++w )
+				{
+					x_basis[ w ] = cosf( std::numbers::pi_v< float > * x * w / width );
+				}
+
+				const auto factor {
+					multiplyBasisFunction( x_basis, y_basis, x, y, width, height, rgb, bytes_per_row )
+				};
 				factors[ y ][ x ][ RED ] = std::get< RED >( factor );
 				factors[ y ][ x ][ GREEN ] = std::get< GREEN >( factor );
 				factors[ y ][ x ][ BLUE ] = std::get< BLUE >( factor );
