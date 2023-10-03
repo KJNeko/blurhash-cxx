@@ -18,7 +18,7 @@ target_include_directories(BlurhashCXX INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/inc
 
 if (DEFINED BLURHASH_BUILD_TESTS)
     if (BLURHASH_BUILD_TESTS STREQUAL "ON")
-        add_subdirectory(${CMAKE_SOURCE_DIR}/dependencies/gtest)
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/gtest)
         #Prepare tests
         file(GLOB BLURHASH_TESTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/**.cpp)
         add_executable(BlurhashTESTS ${BLURHASH_TESTS})
@@ -32,7 +32,8 @@ endif ()
 
 if (DEFINED BLURHASH_BUILD_BENCHMARKS)
     if (BLURHASH_BUILD_BENCHMARKS STREQUAL "ON")
-        add_subdirectory(${CMAKE_SOURCE_DIR}/dependencies/gbench)
+        set(BENCHMARK_ENABLE_GTEST_TESTS "OFF")
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/gbench)
         #Prepare tests
         file(GLOB BLURHASH_BENCHES ${CMAKE_CURRENT_SOURCE_DIR}/bench/**.cpp)
         add_executable(BlurhashBENCH ${BLURHASH_BENCHES})
