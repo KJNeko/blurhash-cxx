@@ -140,20 +140,23 @@ namespace blurhash
 		{
 			const float y_pi { std::numbers::pi_v< float > * static_cast< float >( y ) };
 			const int y_idx { y * bytes_per_row };
+
+			float basics_y[ components_y ];
+			for ( int j = 0; j < components_y; ++j )
+				basics_y[ j ] = cosf( ( y_pi * static_cast< float >( j ) ) / static_cast< float >( height ) );
+
 			for ( int x = 0; x < width; ++x )
 			{
 				const float x_pi { std::numbers::pi_v< float > * static_cast< float >( x ) };
 				const int x_idx { channels * x };
+
+				float basics_x[ components_x ];
+				for ( int i = 0; i < components_x; ++i )
+					basics_x[ i ] = cosf( ( x_pi * static_cast< float >( i ) ) / static_cast< float >( width ) );
+
 				float r { 0.0f };
 				float g { 0.0f };
 				float b { 0.0f };
-
-				float basics_x[ components_x ];
-				float basics_y[ components_y ];
-				for ( int j = 0; j < components_y; ++j )
-					basics_y[ j ] = cosf( ( y_pi * static_cast< float >( j ) ) / static_cast< float >( height ) );
-				for ( int i = 0; i < components_x; ++i )
-					basics_x[ i ] = cosf( ( x_pi * static_cast< float >( i ) ) / static_cast< float >( width ) );
 
 				for ( int j = 0; j < components_y; ++j )
 				{
