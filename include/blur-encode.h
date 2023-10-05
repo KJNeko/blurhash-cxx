@@ -114,6 +114,15 @@ namespace blurhash
 
 		std::array< std::array< std::array< float, 3 >, x_comp >, y_comp > factors;
 
+		float basis_x_precalc[ x_comp ][ width ];
+		for ( int x = 0; x < x_comp; ++x )
+		{
+			for ( int w = 0; w < width; ++w )
+			{
+				basis_x_precalc[ x ][ w ] = cosf( std::numbers::pi_v< float > * x * w / width );
+			}
+		}
+
 		for ( int y = 0; y < y_comp; ++y )
 		{
 			float y_basis[ height ];
@@ -123,14 +132,8 @@ namespace blurhash
 			}
 			for ( int x = 0; x < x_comp; ++x )
 			{
-				float x_basis[ width ];
-				for ( int w = 0; w < width; ++w )
-				{
-					x_basis[ w ] = cosf( std::numbers::pi_v< float > * x * w / width );
-				}
-
 				const auto factor {
-					multiplyBasisFunction( x_basis, y_basis, x, y, width, height, rgb, bytes_per_row )
+					multiplyBasisFunction( basis_x_precalc[ x ], y_basis, x, y, width, height, rgb, bytes_per_row )
 				};
 				factors[ y ][ x ][ RED ] = std::get< RED >( factor );
 				factors[ y ][ x ][ GREEN ] = std::get< GREEN >( factor );
