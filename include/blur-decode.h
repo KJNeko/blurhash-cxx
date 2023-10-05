@@ -48,7 +48,7 @@ namespace blurhash
 					}
 				}
 
-				if ( index == -1 )
+				if ( index == -1 ) [[unlikely]]
 					throw std::runtime_error( "Failed to decode value " + std::to_string( character ) + " to int" );
 				value = value * chars_size + index;
 			}
@@ -86,9 +86,9 @@ namespace blurhash
 			const int quantG { static_cast< int >( floorf( static_cast< float >( value ) / 19.0f ) ) % 19 };
 			const int quantB { value % 19 };
 
-			const float r { signPow( ( static_cast< float >( quantR ) - 9.0f ) / 9.0f, 2.0f ) * maximumValue };
-			const float g { signPow( ( static_cast< float >( quantG ) - 9.0f ) / 9.0f, 2.0f ) * maximumValue };
-			const float b { signPow( ( static_cast< float >( quantB ) - 9.0f ) / 9.0f, 2.0f ) * maximumValue };
+			const float r { signPow( static_cast< float >( quantR - 9 ) / 9.0f, 2.0f ) * maximumValue };
+			const float g { signPow( static_cast< float >( quantG - 9 ) / 9.0f, 2.0f ) * maximumValue };
+			const float b { signPow( static_cast< float >( quantB - 9 ) / 9.0f, 2.0f ) * maximumValue };
 
 			return { r, g, b };
 		}
@@ -137,12 +137,13 @@ namespace blurhash
 		}
 
 		//Calculate x basics
-		float basics_x[ width ][ components_x ];
+		float basics_x_precalc[ width ][ components_x ];
 		for ( int x = 0; x < width; ++x )
 		{
 			const float x_pi { std::numbers::pi_v< float > * static_cast< float >( x ) };
 			for ( int i = 0; i < components_x; ++i )
-				basics_x[ x ][ i ] = cosf( ( x_pi * static_cast< float >( i ) ) / static_cast< float >( width ) );
+				basics_x_precalc[ x ][ i ] =
+					cosf( ( x_pi * static_cast< float >( i ) ) / static_cast< float >( width ) );
 		}
 
 		for ( int y = 0; y < height; ++y )
@@ -157,6 +158,7 @@ namespace blurhash
 			for ( int x = 0; x < width; ++x )
 			{
 				const int x_idx { channels * x };
+				const float* const basics_x { basics_x_precalc[ x ] };
 
 				float r { 0.0f };
 				float g { 0.0f };
@@ -167,7 +169,7 @@ namespace blurhash
 					const int j_idx { j * components_x };
 					for ( int i = 0; i < components_x; ++i )
 					{
-						const float basics { basics_x[ x ][ j ] * basics_y[ i ] };
+						const float basics { basics_x[ j ] * basics_y[ i ] };
 
 						const int idx { j_idx + i };
 						r += colors[ idx ][ RED ] * basics;
