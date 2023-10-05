@@ -136,6 +136,15 @@ namespace blurhash
 			colors[ itter ][ BLUE ] = std::get< BLUE >( ac );
 		}
 
+		//Calculate x basics
+		float basics_x[ width ][ components_x ];
+		for ( int x = 0; x < width; ++x )
+		{
+			const float x_pi { std::numbers::pi_v< float > * static_cast< float >( x ) };
+			for ( int i = 0; i < components_x; ++i )
+				basics_x[ x ][ i ] = cosf( ( x_pi * static_cast< float >( i ) ) / static_cast< float >( width ) );
+		}
+
 		for ( int y = 0; y < height; ++y )
 		{
 			const float y_pi { std::numbers::pi_v< float > * static_cast< float >( y ) };
@@ -147,12 +156,7 @@ namespace blurhash
 
 			for ( int x = 0; x < width; ++x )
 			{
-				const float x_pi { std::numbers::pi_v< float > * static_cast< float >( x ) };
 				const int x_idx { channels * x };
-
-				float basics_x[ components_x ];
-				for ( int i = 0; i < components_x; ++i )
-					basics_x[ i ] = cosf( ( x_pi * static_cast< float >( i ) ) / static_cast< float >( width ) );
 
 				float r { 0.0f };
 				float g { 0.0f };
@@ -163,7 +167,7 @@ namespace blurhash
 					const int j_idx { j * components_x };
 					for ( int i = 0; i < components_x; ++i )
 					{
-						const float basics { basics_x[ j ] * basics_y[ i ] };
+						const float basics { basics_x[ x ][ j ] * basics_y[ i ] };
 
 						const int idx { j_idx + i };
 						r += colors[ idx ][ RED ] * basics;
