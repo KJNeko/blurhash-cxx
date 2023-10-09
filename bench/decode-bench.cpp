@@ -45,12 +45,6 @@ static void BM_Decode_C( benchmark::State& state )
 			break;                                                                                                     \
 		}
 
-#define TEST_TEMPLATE_DECODE( num )                                                                                    \
-	case num:                                                                                                          \
-		{                                                                                                              \
-			break;                                                                                                     \
-		}
-
 static void BM_Decode_CPP( benchmark::State& state )
 {
 	const auto size { state.range( 1 ) };
