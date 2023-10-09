@@ -10,7 +10,8 @@ enum blurhashColor
 {
 	RED = 0,
 	GREEN,
-	BLUE
+	BLUE,
+	ALPHA
 };
 
 constexpr inline int linearTosRGB( float value )
