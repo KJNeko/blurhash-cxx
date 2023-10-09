@@ -112,8 +112,6 @@ namespace blurhash
 		static_assert( y_comp > 1 && y_comp < 9 );
 		const int bytes_per_row { channels * width };
 
-		std::array< std::array< std::array< float, 3 >, x_comp >, y_comp > factors;
-
 		float basis_x_precalc[ x_comp ][ width ];
 		for ( int x = 0; x < x_comp; ++x )
 		{
@@ -122,6 +120,8 @@ namespace blurhash
 				basis_x_precalc[ x ][ w ] = cosf( std::numbers::pi_v< float > * x * w / width );
 			}
 		}
+
+		std::array< std::array< std::array< float, 3 >, x_comp >, y_comp > factors;
 
 		for ( int y = 0; y < y_comp; ++y )
 		{
