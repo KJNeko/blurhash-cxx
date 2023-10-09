@@ -196,7 +196,8 @@ namespace blurhash
 				buffer[ idx + GREEN ] = clampToUByte( linearTosRGB( g ) );
 				buffer[ idx + BLUE ] = clampToUByte( linearTosRGB( b ) );
 
-				//if ( channels == 4 ) buffer[ idx + 3 ] = 255; // If nChannels=4, treat each pixel as RGBA instead of RGB
+				if ( channels == 4 ) [[unlikely]]
+					buffer[ idx + 3 ] = 255; // If nChannels=4, treat each pixel as RGBA instead of RGB
 			}
 		}
 
