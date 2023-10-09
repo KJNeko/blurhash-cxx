@@ -110,16 +110,19 @@ namespace blurhash
 		const int size_flag { decodeToInt( hash, 0, 1 ) };
 		const int components_y { static_cast< int >( std::floor( size_flag / 9 ) ) + 1 };
 		const int components_x { ( size_flag % 9 ) + 1 };
-		assert( hash_components_x > 1 );
-		assert( hash_components_y > 1 );
-		assert( hash_components_x < 9 );
-		assert( hash_components_y < 9 );
+		assert( components_x > min_comp_size );
+		assert( components_y > min_comp_size );
+		assert( components_x < max_comp_size );
+		assert( components_y < max_comp_size );
 
 		const int quantized_max_value { decodeToInt( hash, 1, 2 ) };
+		assert( quantized_max_value <= 166 );
 
 		const float maxValue { static_cast< float >( quantized_max_value + 1 ) / 166.0f };
+		assert( maxValue < 1.0f );
 
 		int colors_size { components_x * components_y };
+		assert( colors_size < max_comp_size * max_comp_size );
 		float colors[ colors_size ][ 4 ];
 
 		const auto dc { decodeDC( decodeToInt( hash, 2, 6 ) ) };
