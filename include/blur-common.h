@@ -20,9 +20,6 @@ constexpr inline int linearTosRGB( float value )
 	return static_cast< int >( std::round( ( 1.055f * std::pow( v, 1.0f / 2.4f ) - 0.055f ) * 255.0f ) );
 }
 
-#define USE_LUT 1
-
-#ifdef USE_LUT
 namespace internal
 {
 	constexpr inline float sRGBToLinear( int value )
@@ -49,7 +46,7 @@ inline static constexpr std::array< float, 256 > sRGBLookupTable {
 	}()
 };
 
-inline float sRGBToLinear( int value )
+constexpr inline float sRGBToLinear( int value )
 {
 	if ( value >= sRGBLookupTable.size() )
 	{
@@ -57,16 +54,6 @@ inline float sRGBToLinear( int value )
 	}
 	return sRGBLookupTable[ value ];
 }
-#else
-constexpr inline float sRGBToLinear( int value )
-{
-	const float v { static_cast< float >( value ) / 255.0f };
-	if ( v <= 0.04045f )
-		return v / 12.92f;
-	else
-		return std::pow( ( v + 0.055f ) / 1.055f, 2.4f );
-}
-#endif
 
 constexpr inline float signPow( float value, float exp )
 {
