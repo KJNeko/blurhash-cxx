@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <cstdint>
+#include <immintrin.h>
 #include <iostream>
 #include <math.h>
 #include <stdbool.h>
