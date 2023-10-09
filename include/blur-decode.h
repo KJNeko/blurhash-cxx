@@ -120,12 +120,13 @@ namespace blurhash
 		const float maxValue { static_cast< float >( quantized_max_value + 1 ) / 166.0f };
 
 		int colors_size { components_x * components_y };
-		float colors[ colors_size ][ 3 ];
+		float colors[ colors_size ][ 4 ];
 
 		const auto dc { decodeDC( decodeToInt( hash, 2, 6 ) ) };
 		colors[ 0 ][ RED ] = std::get< RED >( dc );
 		colors[ 0 ][ GREEN ] = std::get< GREEN >( dc );
 		colors[ 0 ][ BLUE ] = std::get< BLUE >( dc );
+		colors[ 0 ][ ALPHA ] = 0.0f;
 
 		for ( int itter = 1; itter < colors_size; ++itter )
 		{
@@ -134,6 +135,7 @@ namespace blurhash
 			colors[ itter ][ RED ] = std::get< RED >( ac );
 			colors[ itter ][ GREEN ] = std::get< GREEN >( ac );
 			colors[ itter ][ BLUE ] = std::get< BLUE >( ac );
+			colors[ itter ][ ALPHA ] = 0.0f;
 		}
 
 		//Calculate x basics
@@ -160,23 +162,30 @@ namespace blurhash
 				const int x_idx { channels * x };
 				const float* const basics_x { basics_x_precalc[ x ] };
 
-				float r { 0.0f };
-				float g { 0.0f };
-				float b { 0.0f };
+				__m128 vec { _mm_set_ps( 0.0f, 0.0f, 0.0f, 0.0f ) };
 
 				for ( int j = 0; j < components_y; ++j )
 				{
 					const int j_idx { j * components_x };
 					for ( int i = 0; i < components_x; ++i )
 					{
-						const float basics { basics_x[ j ] * basics_y[ i ] };
-
 						const int idx { j_idx + i };
-						r += colors[ idx ][ RED ] * basics;
-						g += colors[ idx ][ GREEN ] * basics;
-						b += colors[ idx ][ BLUE ] * basics;
+
+						const __m128 basics { _mm_set_ps1( basics_x[ j ] * basics_y[ i ] ) };
+
+						const __m128 colors_vec { _mm_load_ps( colors[ idx ] ) };
+
+						const __m128 mul { _mm_mul_ps( basics, colors_vec ) };
+
+						vec = _mm_add_ps( vec, mul );
 					}
 				}
+
+				float data[ 4 ];
+				_mm_store_ps( data, vec );
+				const float r { data[ 0 ] };
+				const float g { data[ 1 ] };
+				const float b { data[ 2 ] };
 
 				const auto idx { static_cast< std::uint64_t >( x_idx + y_idx ) };
 				buffer[ idx + RED ] = clampToUByte( linearTosRGB( r ) );
