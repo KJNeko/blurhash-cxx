@@ -15,11 +15,9 @@ enum blurhashColor
 
 constexpr inline int linearTosRGB( float value )
 {
+	if ( value <= 0.0031308f ) return static_cast< int >( std::round( value * 12.92f * 255.0f ) );
 	const float v { std::clamp( value, 0.0f, 1.0f ) };
-	if ( v <= 0.0031308f )
-		return static_cast< int >( std::round( v * 12.92f * 255.0f ) );
-	else
-		return static_cast< int >( std::round( ( 1.055f * std::pow( v, 1.0f / 2.4f ) - 0.055f ) * 255.0f ) );
+	return static_cast< int >( std::round( ( 1.055f * std::pow( v, 1.0f / 2.4f ) - 0.055f ) * 255.0f ) );
 }
 
 #define USE_LUT 1
