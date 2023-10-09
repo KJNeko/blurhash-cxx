@@ -95,6 +95,9 @@ namespace blurhash
 		}
 	} // namespace internal
 
+	constexpr int min_comp_size { 1 };
+	constexpr int max_comp_size { 9 };
+
 	inline std::vector< std::uint8_t >
 		decode( const std::string_view hash, int width, int height, int punch, int channels )
 	{
