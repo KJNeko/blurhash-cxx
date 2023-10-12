@@ -49,11 +49,11 @@ inline static constexpr std::array< float, 256 > sRGBLookupTable {
 
 constexpr inline float sRGBToLinear( int value )
 {
-	if ( value >= sRGBLookupTable.size() )
+	if ( static_cast< std::size_t >( value ) >= sRGBLookupTable.size() )
 	{
 		throw std::runtime_error( "Value was higher then lookup table! Was:" + std::to_string( value ) );
 	}
-	return sRGBLookupTable[ value ];
+	return sRGBLookupTable[ static_cast< std::size_t >( value ) ];
 }
 
 constexpr inline float signPow( float value, float exp )
