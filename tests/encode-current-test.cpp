@@ -1,10 +1,9 @@
 //
-// Created by kj16609 on 10/1/23.
+// Created by kj16609 on 10/23/23.
 //
 
 extern "C" {
 #include "decode.h"
-
 #include "encode.h"
 }
 
@@ -13,7 +12,8 @@ extern "C" {
 
 #include <random>
 
-#include "blurhash-cxx.hpp"
+#include "blur-encode.h"
+#include "fast-decode.hpp"
 
 template < int comp_size_x, int comp_size_y >
 const std::string createHash()
@@ -49,7 +49,7 @@ const std::string createHash()
 	return std::string( their_output, strlen( their_output ) );
 }
 
-TEST( DecodeTest, Decode_2 )
+TEST( CurrentDecodeTest, Decode_2 )
 {
 	const auto test_hash { createHash< 2, 2 >() };
 
@@ -72,7 +72,7 @@ TEST( DecodeTest, Decode_2 )
 		}
 }
 
-TEST( DecodeTest, Decode_2_512 )
+TEST( CurrentDecodeTest, Decode_2_512 )
 {
 	const auto test_hash { createHash< 2, 2 >() };
 
@@ -95,7 +95,7 @@ TEST( DecodeTest, Decode_2_512 )
 		}
 }
 
-TEST( DecodeTest, Decode_3 )
+TEST( CurrentDecodeTest, Decode_3 )
 {
 	const auto test_hash { createHash< 3, 3 >() };
 
@@ -118,7 +118,7 @@ TEST( DecodeTest, Decode_3 )
 		}
 }
 
-TEST( DecodeTest, Decode_8 )
+TEST( CurrentDecodeTest, Decode_8 )
 {
 	const auto test_hash { createHash< 8, 8 >() };
 

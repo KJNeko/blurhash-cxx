@@ -1,11 +1,10 @@
 //
-// Created by kj16609 on 10/2/23.
+// Created by kj16609 on 10/1/23.
 //
-
 #include <benchmark/benchmark.h>
 
-#define USE_LUT 1
-#include "blurhash-cxx.hpp"
+#include "blur-encode.h"
+#include "fast-decode.hpp"
 
 #define TEST_TEMPLATE( num )                                                                                           \
 	case num:                                                                                                          \
@@ -14,13 +13,7 @@
 			break;                                                                                                     \
 		}
 
-#define TEST_TEMPLATE_DECODE( num )                                                                                    \
-	case num:                                                                                                          \
-		{                                                                                                              \
-			break;                                                                                                     \
-		}
-
-static void BM_Decode_CPP_LUT( benchmark::State& state )
+static void BM_Decode_Current_CPP( benchmark::State& state )
 {
 	const auto size { state.range( 1 ) };
 	const auto comp_size { state.range( 0 ) };
@@ -57,4 +50,4 @@ static void BM_Decode_CPP_LUT( benchmark::State& state )
 	}
 }
 
-//BENCHMARK( BM_Decode_CPP_LUT )->ArgsProduct( { { 2, 4, 6, 8 }, { 128, 512 } } )->Unit( benchmark::kMillisecond );
+BENCHMARK( BM_Decode_Current_CPP )->ArgsProduct( { { 2, 4, 6, 8 }, { 128, 512 } } )->Unit( benchmark::kMillisecond );

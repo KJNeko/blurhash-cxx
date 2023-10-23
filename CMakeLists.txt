@@ -15,6 +15,7 @@ endif ()
 
 add_library(BlurhashCXX INTERFACE)
 target_include_directories(BlurhashCXX INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -march=native")
 
 if (DEFINED BLURHASH_BUILD_TESTS)
     if (BLURHASH_BUILD_TESTS STREQUAL "ON")

@@ -78,6 +78,7 @@ static void BM_Encode_CPP( benchmark::State& state )
 	}
 }
 
+/*
 BENCHMARK( BM_Encode_C )
 	->ArgsProduct( { {
 						 2,
@@ -87,7 +88,9 @@ BENCHMARK( BM_Encode_C )
 					 },
                      { 128, 512 } } )
 	->Unit( benchmark::kMillisecond );
+*/
 
+/*
 BENCHMARK( BM_Encode_CPP )
 	->ArgsProduct( { {
 						 2,
@@ -97,3 +100,4 @@ BENCHMARK( BM_Encode_CPP )
 					 },
                      { 128, 512 } } )
 	->Unit( benchmark::kMillisecond );
+*/

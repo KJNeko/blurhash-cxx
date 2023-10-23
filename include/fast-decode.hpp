@@ -27,8 +27,17 @@ namespace blurhash
 				return 0;
 			else if ( val >= 255 )
 				return 255;
-			else
+			else [[likely]]
 				return static_cast< uint8_t >( val );
+		}
+
+		__m128i wideCLampToUByte( const __m128i val )
+		{
+			//Clamp down each integer to a max of 255
+			const __m128i max { _mm_set1_epi32( 255 ) };
+			const __m128i clamped { _mm_min_epi32( val, max ) };
+			const __m128i min { _mm_set1_epi32( 0 ) };
+			return _mm_max_epi32( clamped, min );
 		}
 
 		constexpr inline int decodeToInt( const std::string_view string, int start, int end )
@@ -83,8 +92,8 @@ namespace blurhash
 
 		constexpr inline std::tuple< float, float, float > decodeAC( int value, const float maximumValue )
 		{
-			const int quantR { static_cast< int >( std::floor( static_cast< float >( value ) / ( 19.0f * 19.0f ) ) ) };
-			const int quantG { static_cast< int >( std::floor( static_cast< float >( value ) / 19.0f ) ) % 19 };
+			const int quantR { static_cast< int >( floorf( static_cast< float >( value ) / ( 19.0f * 19.0f ) ) ) };
+			const int quantG { static_cast< int >( floorf( static_cast< float >( value ) / 19.0f ) ) % 19 };
 			const int quantB { value % 19 };
 
 			const float r { signPow( static_cast< float >( quantR - 9 ) / 9.0f, 2.0f ) * maximumValue };
@@ -123,7 +132,7 @@ namespace blurhash
 		assert( maxValue < 1.0f );
 
 		int colors_size { components_x * components_y };
-		assert( colors_size <= max_comp_size * max_comp_size );
+		assert( colors_size < max_comp_size * max_comp_size );
 		float colors[ colors_size ][ 4 ];
 
 		const auto dc { decodeDC( decodeToInt( hash, 2, 6 ) ) };
@@ -142,13 +151,11 @@ namespace blurhash
 			colors[ itter ][ ALPHA ] = 0.0f;
 		}
 
-		constexpr auto pi { std::numbers::pi_v< float > };
-
 		//Calculate x basics
 		float basics_x_precalc[ width ][ components_x ];
 		for ( int x = 0; x < width; ++x )
 		{
-			const float x_pi { pi * static_cast< float >( x ) };
+			const float x_pi { std::numbers::pi_v< float > * static_cast< float >( x ) };
 			for ( int i = 0; i < components_x; ++i )
 				basics_x_precalc[ x ][ i ] =
 					std::cos( ( x_pi * static_cast< float >( i ) ) / static_cast< float >( width ) );
@@ -156,7 +163,7 @@ namespace blurhash
 
 		for ( int y = 0; y < height; ++y )
 		{
-			const float y_pi { pi * static_cast< float >( y ) };
+			const float y_pi { std::numbers::pi_v< float > * static_cast< float >( y ) };
 			const int y_idx { y * bytes_per_row };
 
 			float basics_y[ components_y ];
@@ -168,7 +175,7 @@ namespace blurhash
 				const int x_idx { channels * x };
 				const float* const basics_x { basics_x_precalc[ x ] };
 
-				__m128 vec { _mm_set_ps( 0.0f, 0.0f, 0.0f, 0.0f ) };
+				__m128 vec {}; // { _mm_set_ps( 0.0f, 0.0f, 0.0f, 0.0f ) };
 
 				for ( int j = 0; j < components_y; ++j )
 				{
@@ -182,22 +189,31 @@ namespace blurhash
 						const __m128 colors_vec { _mm_load_ps( colors[ idx ] ) };
 
 						vec = _mm_add_ps( vec, _mm_mul_ps( basics, colors_vec ) );
+
+						/*
+						float data[ 4 ];
+						_mm_store_ps( data, vec );
+						r = data[ 0 ];
+						g = data[ 1 ];
+						b = data[ 2 ];
+						 */
 					}
 				}
 
-				float data[ 4 ] { 0.0f, 0.0f, 0.0f, 0.0f };
-				_mm_store_ps( data, vec );
-				const float r { data[ 0 ] };
-				const float g { data[ 1 ] };
-				const float b { data[ 2 ] };
-
+				const auto rbg { wideLinearTosRGB( vec ) };
+				const auto clamped_rbg { wideCLampToUByte( rbg ) };
 				const auto idx { static_cast< std::uint64_t >( x_idx + y_idx ) };
-				buffer[ idx + RED ] = clampToUByte( linearTosRGB( r ) );
-				buffer[ idx + GREEN ] = clampToUByte( linearTosRGB( g ) );
-				buffer[ idx + BLUE ] = clampToUByte( linearTosRGB( b ) );
+				//Store 3 values
+				int data[ 4 ] { 0, 0, 0, 0 };
+				_mm_storeu_si128( reinterpret_cast< __m128i* >( data ), clamped_rbg );
+				memcpy( &buffer[ idx ], data, channels );
 
-				if ( channels == 4 ) [[unlikely]]
-					buffer[ idx + 3 ] = 255; // If nChannels=4, treat each pixel as RGBA instead of RGB
+				//buffer[ idx + RED ] = clampToUByte( linearTosRGB( r ) );
+				//buffer[ idx + GREEN ] = clampToUByte( linearTosRGB( g ) );
+				//buffer[ idx + BLUE ] = clampToUByte( linearTosRGB( b ) );
+
+				//				if ( channels == 4 ) [[unlikely]]
+				//					buffer[ idx + 3 ] = 255; // If nChannels=4, treat each pixel as RGBA instead of RGB
 			}
 		}
 
