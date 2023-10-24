@@ -38,7 +38,7 @@ if (DEFINED BLURHASH_BUILD_BENCHMARKS)
         #Prepare tests
         file(GLOB BLURHASH_BENCHES ${CMAKE_CURRENT_SOURCE_DIR}/bench/**.cpp)
         add_executable(BlurhashBENCH ${BLURHASH_BENCHES})
-        set(CMAKE_CXX_FLAGS_RELEASE "-O3 -s -DNDEBUG -std=c++20")
+        set(CMAKE_CXX_FLAGS_RELEASE "-O2 -s -DNDEBUG -std=c++20")
         target_link_libraries(BlurhashBENCH PRIVATE BlurhashREF benchmark::benchmark_main)
         target_include_directories(BlurhashBENCH PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
     endif ()

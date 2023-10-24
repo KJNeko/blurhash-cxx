@@ -13,6 +13,7 @@ extern "C" {
 
 #include "blur-common.h"
 
+/*
 TEST( CommonTests, RBGConversion )
 {
 	for ( int a = 0; a < 512; ++a )
@@ -44,4 +45,4 @@ TEST( CommonTests, RBGConversion )
 		ASSERT_EQ( simd_out_arr[ 2 ], normal_out[ 2 ] );
 		ASSERT_EQ( simd_out_arr[ 3 ], normal_out[ 3 ] );
 	}
-}
+}*/

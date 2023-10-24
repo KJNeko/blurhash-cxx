@@ -16,7 +16,7 @@
 
 #include "blur-common.h"
 
-namespace blurhash
+namespace blurhash::testing
 {
 	namespace internal
 	{
@@ -31,13 +31,20 @@ namespace blurhash
 				return static_cast< uint8_t >( val );
 		}
 
-		__m128i wideCLampToUByte( const __m128i val )
+		/*
+		32 | 32 | 32 | 32
+		-------------------
+		24 + 8 | 24 + 8 | 24 + 8 | 24 + 8
+		 */
+
+		__m128i wideClampToUByte( const __m128i val )
 		{
 			//Clamp down each integer to a max of 255
 			const __m128i max { _mm_set1_epi32( 255 ) };
-			const __m128i clamped { _mm_min_epi32( val, max ) };
 			const __m128i min { _mm_set1_epi32( 0 ) };
-			return _mm_max_epi32( clamped, min );
+			const __m128i clamped { _mm_max_epi32( _mm_min_epi32( val, max ), min ) };
+
+			return clamped;
 		}
 
 		constexpr inline int decodeToInt( const std::string_view string, int start, int end )
@@ -132,14 +139,14 @@ namespace blurhash
 		assert( maxValue < 1.0f );
 
 		int colors_size { components_x * components_y };
-		assert( colors_size < max_comp_size * max_comp_size );
+		assert( colors_size <= max_comp_size * max_comp_size );
 		float colors[ colors_size ][ 4 ];
 
 		const auto dc { decodeDC( decodeToInt( hash, 2, 6 ) ) };
 		colors[ 0 ][ RED ] = std::get< RED >( dc );
 		colors[ 0 ][ GREEN ] = std::get< GREEN >( dc );
 		colors[ 0 ][ BLUE ] = std::get< BLUE >( dc );
-		colors[ 0 ][ ALPHA ] = 0.0f;
+		colors[ 0 ][ ALPHA ] = 255.0f;
 
 		for ( int itter = 1; itter < colors_size; ++itter )
 		{
@@ -148,14 +155,16 @@ namespace blurhash
 			colors[ itter ][ RED ] = std::get< RED >( ac );
 			colors[ itter ][ GREEN ] = std::get< GREEN >( ac );
 			colors[ itter ][ BLUE ] = std::get< BLUE >( ac );
-			colors[ itter ][ ALPHA ] = 0.0f;
+			colors[ itter ][ ALPHA ] = 255.0f;
 		}
+
+		constexpr float pi { std::numbers::pi_v< float > };
 
 		//Calculate x basics
 		float basics_x_precalc[ width ][ components_x ];
 		for ( int x = 0; x < width; ++x )
 		{
-			const float x_pi { std::numbers::pi_v< float > * static_cast< float >( x ) };
+			const float x_pi { pi * static_cast< float >( x ) };
 			for ( int i = 0; i < components_x; ++i )
 				basics_x_precalc[ x ][ i ] =
 					std::cos( ( x_pi * static_cast< float >( i ) ) / static_cast< float >( width ) );
@@ -163,19 +172,68 @@ namespace blurhash
 
 		for ( int y = 0; y < height; ++y )
 		{
-			const float y_pi { std::numbers::pi_v< float > * static_cast< float >( y ) };
+			const auto y_pi { pi * static_cast< float >( y ) };
 			const int y_idx { y * bytes_per_row };
 
 			float basics_y[ components_y ];
 			for ( int j = 0; j < components_y; ++j )
 				basics_y[ j ] = std::cos( ( y_pi * static_cast< float >( j ) ) / static_cast< float >( height ) );
 
-			for ( int x = 0; x < width; ++x )
+			for ( int x = 0; x < width; x += 4 )
+			{
+				const auto x_idx { channels * x };
+				__m128 one, two, three, four;
+				one = _mm_setzero_ps();
+				two = _mm_setzero_ps();
+				three = _mm_setzero_ps();
+				four = _mm_setzero_ps();
+
+				float* basis_x_one { basics_x_precalc[ x ] };
+				float* basis_x_two { basics_x_precalc[ x + 1 ] };
+				float* basis_x_three { basics_x_precalc[ x + 2 ] };
+				float* basis_x_four { basics_x_precalc[ x + 3 ] };
+
+				for ( int y_c = 0; y_c < components_y; ++y_c )
+				{
+					for ( int x_c = 0; x_c < components_x; ++x_c )
+					{
+						const int colors_idx { y_c * components_x + x_c };
+						const float* const color { colors[ colors_idx ] };
+
+						const __m128 basics_vec_one { _mm_set_ps1( basis_x_one[ x_c ] * basics_y[ y_c ] ) };
+						const __m128 basics_vec_two { _mm_set_ps1( basis_x_two[ x_c ] * basics_y[ y_c ] ) };
+						const __m128 basics_vec_three { _mm_set_ps1( basis_x_three[ x_c ] * basics_y[ y_c ] ) };
+						const __m128 basics_vec_four { _mm_set_ps1( basis_x_four[ x_c ] * basics_y[ y_c ] ) };
+
+						const auto color_vec { _mm_load_ps( color ) };
+
+						one = _mm_add_ps( one, _mm_mul_ps( color_vec, basics_vec_one ) );
+						two = _mm_add_ps( two, _mm_mul_ps( color_vec, basics_vec_two ) );
+						three = _mm_add_ps( three, _mm_mul_ps( color_vec, basics_vec_three ) );
+						four = _mm_add_ps( four, _mm_mul_ps( color_vec, basics_vec_four ) );
+					}
+				}
+
+				const __m128i one_i { wideLinearTosRGB( one ) };
+				const __m128i two_i { wideLinearTosRGB( two ) };
+				const __m128i three_i { wideLinearTosRGB( three ) };
+				const __m128i four_i { wideLinearTosRGB( four ) };
+
+				//Shift dance time
+				const auto first { _mm_packs_epi32( four_i, three_i ) };
+				const auto second { _mm_packs_epi32( two_i, one_i ) };
+				const auto third { _mm_packus_epi16( second, first ) };
+
+				//memcpy
+				_mm_storeu_si128( reinterpret_cast< __m128i* >( buffer.data() + x_idx + y_idx ), third );
+			}
+
+			for ( int x = width - ( width % 4 ); x < width; ++x )
 			{
 				const int x_idx { channels * x };
 				const float* const basics_x { basics_x_precalc[ x ] };
 
-				__m128 vec {}; // { _mm_set_ps( 0.0f, 0.0f, 0.0f, 0.0f ) };
+				__m128 vec { _mm_set_ps( 0.0f, 0.0f, 0.0f, 0.0f ) };
 
 				for ( int j = 0; j < components_y; ++j )
 				{
@@ -189,36 +247,27 @@ namespace blurhash
 						const __m128 colors_vec { _mm_load_ps( colors[ idx ] ) };
 
 						vec = _mm_add_ps( vec, _mm_mul_ps( basics, colors_vec ) );
-
-						/*
-						float data[ 4 ];
-						_mm_store_ps( data, vec );
-						r = data[ 0 ];
-						g = data[ 1 ];
-						b = data[ 2 ];
-						 */
 					}
 				}
 
-				const auto rbg { wideLinearTosRGB( vec ) };
-				const auto clamped_rbg { wideCLampToUByte( rbg ) };
 				const auto idx { static_cast< std::uint64_t >( x_idx + y_idx ) };
-				//Store 3 values
-				int data[ 4 ] { 0, 0, 0, 0 };
-				_mm_storeu_si128( reinterpret_cast< __m128i* >( data ), clamped_rbg );
-				memcpy( &buffer[ idx ], data, channels );
 
-				//buffer[ idx + RED ] = clampToUByte( linearTosRGB( r ) );
-				//buffer[ idx + GREEN ] = clampToUByte( linearTosRGB( g ) );
-				//buffer[ idx + BLUE ] = clampToUByte( linearTosRGB( b ) );
+				const __m128i simd_out { wideClampToUByte( wideLinearTosRGB( vec ) ) };
 
-				//				if ( channels == 4 ) [[unlikely]]
-				//					buffer[ idx + 3 ] = 255; // If nChannels=4, treat each pixel as RGBA instead of RGB
+				//Unpack simd_out
+				int simd_out_arr[ 4 ];
+				_mm_storeu_si128( reinterpret_cast< __m128i* >( simd_out_arr ), simd_out );
+				buffer[ idx + RED ] = simd_out_arr[ 0 ];
+				buffer[ idx + GREEN ] = simd_out_arr[ 1 ];
+				buffer[ idx + BLUE ] = simd_out_arr[ 2 ];
+
+				if ( channels == 4 ) [[unlikely]]
+					buffer[ idx + ALPHA ] = 255; // If nChannels=4, treat each pixel as RGBA instead of RGB
 			}
 		}
 
 		return buffer;
 	}
-} // namespace blurhash
+} // namespace blurhash::testing
 
 #endif

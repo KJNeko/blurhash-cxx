@@ -46,8 +46,8 @@ static void BM_Decode_Current_CPP( benchmark::State& state )
 
 	for ( auto _ : state )
 	{
-		out = blurhash::decode( hash, size, size, 0, 3 );
+		out = blurhash::testing::decode( hash, size, size, 0, 3 );
 	}
 }
 
-BENCHMARK( BM_Decode_Current_CPP )->ArgsProduct( { { 2, 4, 6, 8 }, { 128, 512 } } )->Unit( benchmark::kMillisecond );
+BENCHMARK( BM_Decode_Current_CPP )->ArgsProduct( { { 2, 4, 6, 8 }, { 128, 512, 1024 } } )->Unit( benchmark::kMillisecond );
