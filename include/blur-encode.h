@@ -117,7 +117,8 @@ namespace blurhash
 		{
 			for ( int w = 0; w < width; ++w )
 			{
-				basis_x_precalc[ x ][ w ] = cosf( std::numbers::pi_v< float > * x * w / width );
+				basis_x_precalc[ x ][ w ] =
+					cosf( std::numbers::pi_v< float > * static_cast< float >( x * w ) / static_cast< float >( width ) );
 			}
 		}
 
@@ -128,7 +129,8 @@ namespace blurhash
 			float y_basis[ height ];
 			for ( int h = 0; h < height; ++h )
 			{
-				y_basis[ h ] = cosf( std::numbers::pi_v< float > * y * h / height );
+				y_basis[ h ] = cosf(
+					std::numbers::pi_v< float > * static_cast< float >( y * h ) / static_cast< float >( height ) );
 			}
 			for ( int x = 0; x < x_comp; ++x )
 			{
