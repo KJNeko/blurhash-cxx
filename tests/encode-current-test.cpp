@@ -55,20 +55,21 @@ TEST( CurrentDecodeTest, Decode_2 )
 
 	constexpr int image_size { 32 };
 
-	const auto my_output { blurhash::testing::decode( test_hash, image_size, image_size, 0, 3 ) };
+	const auto my_output { blurhash::testing::decode( test_hash, image_size, image_size, 0 ) };
 
-	const auto their_output { decode( test_hash.data(), image_size, image_size, 0, 3 ) };
+	const auto their_output { decode( test_hash.data(), image_size, image_size, 0, 4 ) };
 
 	for ( int y = 0; y < image_size; ++y )
 		for ( int x = 0; x < image_size; ++x )
 		{
-			const auto idx { ( y * image_size * 3 ) + x * 3 };
+			const auto idx { ( y * image_size * 4 ) + x * 4 };
 			const auto* my_pixel { my_output.data() };
 			const auto* their_pixel { their_output + idx };
 
 			ASSERT_LE( std::abs( *my_pixel - *their_pixel ), 2 );
 			ASSERT_LE( std::abs( *( my_pixel + 1 ) - *( their_pixel + 1 ) ), 2 );
 			ASSERT_LE( std::abs( *( my_pixel + 2 ) - *( their_pixel + 2 ) ), 2 );
+			ASSERT_EQ( *( my_pixel + 3 ), *( their_pixel + 3 ) );
 		}
 }
 
@@ -78,20 +79,21 @@ TEST( CurrentDecodeTest, Decode_2_512 )
 
 	constexpr int image_size { 512 };
 
-	const auto my_output { blurhash::testing::decode( test_hash, image_size, image_size, 0, 3 ) };
+	const auto my_output { blurhash::testing::decode( test_hash, image_size, image_size, 0 ) };
 
-	const auto their_output { decode( test_hash.data(), image_size, image_size, 0, 3 ) };
+	const auto their_output { decode( test_hash.data(), image_size, image_size, 0, 4 ) };
 
 	for ( int y = 0; y < image_size; ++y )
 		for ( int x = 0; x < image_size; ++x )
 		{
-			const auto idx { ( y * image_size * 3 ) + x * 3 };
+			const auto idx { ( y * image_size * 4 ) + x * 4 };
 			const auto* my_pixel { my_output.data() };
 			const auto* their_pixel { their_output + idx };
 
 			ASSERT_LE( std::abs( *my_pixel - *their_pixel ), 2 );
 			ASSERT_LE( std::abs( *( my_pixel + 1 ) - *( their_pixel + 1 ) ), 2 );
 			ASSERT_LE( std::abs( *( my_pixel + 2 ) - *( their_pixel + 2 ) ), 2 );
+			ASSERT_EQ( *( my_pixel + 3 ), *( their_pixel + 3 ) );
 		}
 }
 
@@ -101,20 +103,21 @@ TEST( CurrentDecodeTest, Decode_3 )
 
 	constexpr int image_size { 512 };
 
-	const auto my_output { blurhash::testing::decode( test_hash, image_size, image_size, 0, 3 ) };
+	const auto my_output { blurhash::testing::decode( test_hash, image_size, image_size, 0 ) };
 
-	const auto their_output { decode( test_hash.data(), image_size, image_size, 0, 3 ) };
+	const auto their_output { decode( test_hash.data(), image_size, image_size, 0, 4 ) };
 
 	for ( int y = 0; y < image_size; ++y )
 		for ( int x = 0; x < image_size; ++x )
 		{
-			const auto idx { ( y * image_size * 3 ) + x * 3 };
+			const auto idx { ( y * image_size * 4 ) + x * 4 };
 			const auto* my_pixel { my_output.data() };
 			const auto* their_pixel { their_output + idx };
 
 			ASSERT_LE( std::abs( *my_pixel - *their_pixel ), 2 );
 			ASSERT_LE( std::abs( *( my_pixel + 1 ) - *( their_pixel + 1 ) ), 2 );
 			ASSERT_LE( std::abs( *( my_pixel + 2 ) - *( their_pixel + 2 ) ), 2 );
+			ASSERT_EQ( *( my_pixel + 3 ), *( their_pixel + 3 ) );
 		}
 }
 
@@ -124,20 +127,21 @@ TEST( CurrentDecodeTest, Decode_8 )
 
 	constexpr int image_size { 512 };
 
-	const auto my_output { blurhash::testing::decode( test_hash, image_size, image_size, 0, 3 ) };
+	const auto my_output { blurhash::testing::decode( test_hash, image_size, image_size, 0 ) };
 
-	const auto their_output { decode( test_hash.data(), image_size, image_size, 0, 3 ) };
+	const auto their_output { decode( test_hash.data(), image_size, image_size, 0, 4 ) };
 
 	for ( int y = 0; y < image_size; ++y )
 		for ( int x = 0; x < image_size; ++x )
 		{
-			const auto idx { ( y * image_size * 3 ) + x * 3 };
+			const auto idx { ( y * image_size * 4 ) + x * 4 };
 			const auto* my_pixel { my_output.data() };
 			const auto* their_pixel { their_output + idx };
 
 			ASSERT_EQ( *my_pixel, *their_pixel );
 			ASSERT_EQ( *( my_pixel + 1 ), *( their_pixel + 1 ) );
 			ASSERT_EQ( *( my_pixel + 2 ), *( their_pixel + 2 ) );
+			ASSERT_EQ( *( my_pixel + 3 ), *( their_pixel + 3 ) );
 		}
 }
 
@@ -147,26 +151,24 @@ TEST( CurrentDecodeTest, Decode_Odd )
 
 	constexpr int image_size { 130 };
 
-	const auto my_output { blurhash::testing::decode( test_hash, image_size, image_size, 0, 3 ) };
+	const auto my_output { blurhash::testing::decode( test_hash, image_size, image_size, 0 ) };
 
-	const auto their_output { decode( test_hash.data(), image_size, image_size, 0, 3 ) };
+	const auto their_output { decode( test_hash.data(), image_size, image_size, 0, 4 ) };
 
 	for ( int y = 0; y < image_size; ++y )
 		for ( int x = 0; x < image_size; ++x )
 		{
-			const auto idx { ( y * image_size * 3 ) + x * 3 };
+			const auto idx { ( y * image_size * 4 ) + x * 4 };
 			const auto* my_pixel { my_output.data() };
 			const auto* their_pixel { their_output + idx };
 
-
-//			ASSERT_EQ( *my_pixel, *their_pixel );
-//			ASSERT_EQ( *( my_pixel + 1 ), *( their_pixel + 1 ) );
-//			ASSERT_EQ( *( my_pixel + 2 ), *( their_pixel + 2 ) );
+			//			ASSERT_EQ( *my_pixel, *their_pixel );
+			//			ASSERT_EQ( *( my_pixel + 1 ), *( their_pixel + 1 ) );
+			//			ASSERT_EQ( *( my_pixel + 2 ), *( their_pixel + 2 ) );
 
 			ASSERT_LE( std::abs( *my_pixel - *their_pixel ), 6 );
 			ASSERT_LE( std::abs( *( my_pixel + 1 ) - *( their_pixel + 1 ) ), 6 );
 			ASSERT_LE( std::abs( *( my_pixel + 2 ) - *( their_pixel + 2 ) ), 6 );
+			ASSERT_EQ( *( my_pixel + 3 ), *( their_pixel + 3 ) );
 		}
 }
-
-

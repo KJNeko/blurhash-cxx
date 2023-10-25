@@ -46,7 +46,7 @@ static void BM_Decode_Current_CPP( benchmark::State& state )
 
 	for ( auto _ : state )
 	{
-		out = blurhash::testing::decode( hash, size, size, 0, 3 );
+		out = blurhash::testing::decode( hash, size, size, 0 );
 	}
 }
 

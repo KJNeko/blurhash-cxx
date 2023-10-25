@@ -111,9 +111,9 @@ namespace blurhash::testing
 		}
 	} // namespace internal
 
-	inline std::vector< std::uint8_t >
-		decode( const std::string_view hash, int width, int height, int punch, int channels )
+	inline std::vector< std::uint8_t > decode( const std::string_view hash, int width, int height, int punch )
 	{
+		constexpr int channels { 4 };
 		using namespace internal;
 
 		const int bytes_per_row { channels * width };
@@ -182,16 +182,15 @@ namespace blurhash::testing
 			for ( int x = 0; x < width; x += 4 )
 			{
 				const auto x_idx { channels * x };
-				__m128 one, two, three, four;
-				one = _mm_setzero_ps();
-				two = _mm_setzero_ps();
-				three = _mm_setzero_ps();
-				four = _mm_setzero_ps();
+				__m128 one { _mm_setzero_ps() };
+				__m128 two { _mm_setzero_ps() };
+				__m128 three { _mm_setzero_ps() };
+				__m128 four { _mm_setzero_ps() };
 
-				float* basis_x_one { basics_x_precalc[ x ] };
-				float* basis_x_two { basics_x_precalc[ x + 1 ] };
-				float* basis_x_three { basics_x_precalc[ x + 2 ] };
-				float* basis_x_four { basics_x_precalc[ x + 3 ] };
+				const float* const basis_x_one { basics_x_precalc[ x ] };
+				const float* const basis_x_two { basics_x_precalc[ x + 1 ] };
+				const float* const basis_x_three { basics_x_precalc[ x + 2 ] };
+				const float* const basis_x_four { basics_x_precalc[ x + 3 ] };
 
 				for ( int y_c = 0; y_c < components_y; ++y_c )
 				{
@@ -200,16 +199,18 @@ namespace blurhash::testing
 						const int colors_idx { y_c * components_x + x_c };
 						const float* const color { colors[ colors_idx ] };
 
-						const __m128 basics_vec_one { _mm_set_ps1( basis_x_one[ x_c ] * basics_y[ y_c ] ) };
-						const __m128 basics_vec_two { _mm_set_ps1( basis_x_two[ x_c ] * basics_y[ y_c ] ) };
-						const __m128 basics_vec_three { _mm_set_ps1( basis_x_three[ x_c ] * basics_y[ y_c ] ) };
-						const __m128 basics_vec_four { _mm_set_ps1( basis_x_four[ x_c ] * basics_y[ y_c ] ) };
-
 						const auto color_vec { _mm_load_ps( color ) };
 
+						const __m128 basics_vec_one { _mm_set_ps1( basis_x_one[ x_c ] * basics_y[ y_c ] ) };
 						one = _mm_add_ps( one, _mm_mul_ps( color_vec, basics_vec_one ) );
+
+						const __m128 basics_vec_two { _mm_set_ps1( basis_x_two[ x_c ] * basics_y[ y_c ] ) };
 						two = _mm_add_ps( two, _mm_mul_ps( color_vec, basics_vec_two ) );
+
+						const __m128 basics_vec_three { _mm_set_ps1( basis_x_three[ x_c ] * basics_y[ y_c ] ) };
 						three = _mm_add_ps( three, _mm_mul_ps( color_vec, basics_vec_three ) );
+
+						const __m128 basics_vec_four { _mm_set_ps1( basis_x_four[ x_c ] * basics_y[ y_c ] ) };
 						four = _mm_add_ps( four, _mm_mul_ps( color_vec, basics_vec_four ) );
 					}
 				}
@@ -225,7 +226,8 @@ namespace blurhash::testing
 				const auto third { _mm_packus_epi16( second, first ) };
 
 				//memcpy
-				_mm_storeu_si128( reinterpret_cast< __m128i* >( buffer.data() + x_idx + y_idx ), third );
+				//Check that the index will be aligned
+				_mm_store_si128( reinterpret_cast< __m128i* >( buffer.data() + x_idx + y_idx ), third );
 			}
 
 			for ( int x = width - ( width % 4 ); x < width; ++x )
@@ -260,9 +262,7 @@ namespace blurhash::testing
 				buffer[ idx + RED ] = simd_out_arr[ 0 ];
 				buffer[ idx + GREEN ] = simd_out_arr[ 1 ];
 				buffer[ idx + BLUE ] = simd_out_arr[ 2 ];
-
-				if ( channels == 4 ) [[unlikely]]
-					buffer[ idx + ALPHA ] = 255; // If nChannels=4, treat each pixel as RGBA instead of RGB
+				buffer[ idx + ALPHA ] = 255; // If nChannels=4, treat each pixel as RGBA instead of RGB
 			}
 		}
 
