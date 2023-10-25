@@ -2,6 +2,7 @@
 #define BLURHASH_DECODE_HPP
 
 #include <assert.h>
+#include <csignal>
 #include <cstdint>
 #include <immintrin.h>
 #include <iostream>
@@ -194,9 +195,10 @@ namespace blurhash::testing
 
 				for ( int y_c = 0; y_c < components_y; ++y_c )
 				{
+					const int y_c_idx { y_c * components_x };
 					for ( int x_c = 0; x_c < components_x; ++x_c )
 					{
-						const int colors_idx { y_c * components_x + x_c };
+						const int colors_idx { y_c_idx + x_c };
 						const float* const color { colors[ colors_idx ] };
 
 						const auto color_vec { _mm_load_ps( color ) };
