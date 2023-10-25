@@ -227,7 +227,7 @@ namespace blurhash::testing
 
 				//memcpy
 				//Check that the index will be aligned
-				_mm_store_si128( reinterpret_cast< __m128i* >( buffer.data() + x_idx + y_idx ), third );
+				_mm_storeu_si128( reinterpret_cast< __m128i* >( buffer.data() + x_idx + y_idx ), third );
 			}
 
 			for ( int x = width - ( width % 4 ); x < width; ++x )
